@@ -33,7 +33,7 @@ jobs:
           ls -a
           cd ..
           ls -a
-          cp -a ./source-dir. ./target-dir
+          cp -a source-dir. target-dir
           ls -a
           cd target-dir
           ls -a
