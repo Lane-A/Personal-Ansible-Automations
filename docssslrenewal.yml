@@ -1,0 +1,16 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+
+    - name: Update SSL Certs
+      ansible.builtin.shell: sudo docker compose run --rm  certbot certonly --email lane.arnold@betaflixinc.com --agree-tos --no-eff-email --force-renewal  --webroot --webroot-path /var/www/certbot/ -d black-beans.click -d www.black-beans.click
+      args:
+        executable: /bin/bash  
+        
+    - name: Reboot the vm
+      become: true
+      reboot:
+        reboot_timeout: 1800
+        test_command: uptime

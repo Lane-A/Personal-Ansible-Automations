@@ -1,0 +1,133 @@
+---
+- name: 0-0 Upgrade the OS (apt-get dist-upgrade)
+  block:
+    - name: update vm
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 0F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 1
+  block:
+    - name: 1-0 Task 1
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: true
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+- name: Task 3
+  block:
+    - name: 3-0 Task 3
+      ansible.builtin.shell: install -m 0755 -d /etc/apt/keyrings
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 3F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+- name: Task 3
+  block:
+    - name: 4-0 Task 4
+      ansible.builtin.shell: curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 4F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 4
+  block:
+    - name: 4-0 Task 4
+      ansible.builtin.shell: chmod a+r /etc/apt/keyrings/docker.asc
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 4F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 5
+  block:
+    - name: 5-0 Task 5
+      ansible.builtin.shell: | 
+        tee /etc/apt/sources.list.d/docker.sources <<EOF
+        Types: deb
+        URIs: https://download.docker.com/linux/ubuntu
+        Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+        Components: stable
+        Architectures: $(dpkg --print-architecture)
+        Signed-By: /etc/apt/keyrings/docker.asc
+        EOF
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 5F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 6
+  block:
+    - name: 6-0 Task 6
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 6F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+            
+- name: Task 7
+  block:
+    - name: 7-0 Task 7
+      ansible.builtin.shell: docker run hello-world
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 7F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 8
+  block:
+    - name: 8-0 Task 8
+      ansible.builtin.shell: usermod -aG docker "{{ ansible_user }}"
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 8F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+  
+- name: reboot
+  block:
+    - name: 1-0 Schedule a reboot for 5 minutes from now
+      ansible.builtin.include_role:
+        name: reboot-debian
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

@@ -1,0 +1,63 @@
+---
+- name: 0-0 Upgrade the OS (apt-get dist-upgrade)
+  block:
+    - name: update vm
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 0F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 1
+  block:
+    - name: 1-0 Task 1
+      ansible.builtin.apt:
+        name:
+          - unzip
+        state: present
+        update_cache: true
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 1
+  block:
+    - name: 1-0 Task 1
+      ansible.builtin.shell: curl -fsSL https://awscli.amazonaws.com/v2/install.sh | sudo bash -s -- --system
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 1
+  block:
+    - name: 1-0 Task 1
+      ansible.builtin.shell: printf "%s\n%s\n%s\n%s\n" "{{ aws_cli_access_key }}" "{{ aws_cli_access_secret }}" "us-east-2" "none" | aws configure
+      args:
+        executable: "{{ distro_command_method }}"
+      become: false
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+  
+- name: reboot
+  block:
+    - name: 1-0 Schedule a reboot for 5 minutes from now
+      ansible.builtin.include_role:
+        name: reboot-debian
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

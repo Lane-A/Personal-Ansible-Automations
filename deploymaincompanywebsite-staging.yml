@@ -1,0 +1,35 @@
+---
+- hosts: all
+  become: false
+  tasks:
+    - name: Update Image and Deploy
+      ansible.builtin.shell: aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 387962842595.dkr.ecr.us-east-2.amazonaws.com/betaflix/company-website && cd companywebsite && docker compose down && docker compose pull && docker compose up -d
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 1 second to ensure execution order
+      ansible.builtin.pause:
+        seconds: 1
+
+    - name: message devs
+      ansible.builtin.uri: 
+        url: 'https://hooks.slack.com/services/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'
+        method: POST
+        body_format: json
+        body: {"text": "<!channel> Main-Company-Website Deployed to staging: https://staging.mcw.blue-beans.click/", "username": "Autodeployments", "icon_emoji" : ":zap:"}
+        headers:
+          Content-Type: application/json
+
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: message qa
+      ansible.builtin.uri: 
+        url: 'https://hooks.slack.com/services/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'
+        method: POST
+        body_format: json
+        body: {"text": "<!channel> QA Ticket:\n Repo: WebDev-Company_Website \n Date: {{ ansible_date_time.date }} \n Description: Deployed Staging Website Link: https://staging.mcw.blue-beans.click/", "username": "AutoQA", "icon_emoji" : ":zap:"}
+        headers:
+          Content-Type: application/json
+        

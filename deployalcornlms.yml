@@ -1,0 +1,84 @@
+---
+- hosts: all
+  become: false
+  tasks:
+    - name: Prune old images
+      ansible.builtin.shell: docker system prune -af --volumes
+      args:
+        executable: /bin/bash
+  
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Docker compose down
+      ansible.builtin.shell: cd ASLMS && docker compose down
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Update Image Tag
+      ansible.builtin.shell: cd ASLMS && sed -i 's/^TAG=.*$/TAG={{ TAG }}/' .env
+      args:
+        executable: /bin/bash
+
+    - name: Login to ECR (Frontend) 
+      ansible.builtin.shell: aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 387962842595.dkr.ecr.us-east-2.amazonaws.com/betaflix/bits-lms-frontend
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 1 second to ensure execution order
+      ansible.builtin.pause:
+        seconds: 1
+
+    - name: Pull image (Frontend) 
+      ansible.builtin.shell: cd ASLMS && docker compose pull lms-frontend
+      args:
+        executable: /bin/bash
+        
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10
+        
+    - name: Login to ECR (backend)
+      ansible.builtin.shell: aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 387962842595.dkr.ecr.us-east-2.amazonaws.com/betaflix/bits-lms-backend
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 1 second to ensure execution order
+      ansible.builtin.pause:
+        seconds: 1
+
+    - name: Pull image (backend)
+      ansible.builtin.shell: cd ASLMS && docker compose pull lms-backend
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Docker compose up
+      ansible.builtin.shell: cd ASLMS && docker compose up -d
+      args:
+        executable: /bin/bash
+
+    - name: Pause for 1 second to ensure execution order
+      ansible.builtin.pause:
+        seconds: 1
+        
+    - name: message devs
+      ansible.builtin.uri: 
+        url: 'https://hooks.slack.com/services/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'
+        method: POST
+        body_format: json
+        body: {"text": "<!channel> Alcornstate LMS Deployed (staging): https://alcornstate.betaflixinc.com/", "username": "Autodeployments", "icon_emoji" : ":zap:"}
+        headers:
+          Content-Type: application/json
+
+    - name: Pause for 10 seconds to ensure execution order
+      ansible.builtin.pause:
+        seconds: 10

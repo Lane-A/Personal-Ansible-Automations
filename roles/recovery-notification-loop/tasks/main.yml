@@ -1,0 +1,18 @@
+---
+- name: If service revcovered, notify Service Recovered
+  ansible.builtin.include_role:
+    name: recovery-success
+  vars: 
+    service_name: "{{ playbook_role_service_name }}"
+  when: RECOVERED is regex('status:1')
+
+- name: If recovered. exit playbook early
+  ansible.builtin.meta: end_play
+  when: RECOVERED is regex('status:1')
+  
+- name: Else Attempt to Recover
+  ansible.builtin.include_role:
+    name: recovery-attempt
+  vars: 
+    service_name: "{{ playbook_role_service_name }}"
+  when: RECOVERED is regex('status:0')

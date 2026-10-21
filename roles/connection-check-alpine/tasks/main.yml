@@ -1,0 +1,43 @@
+---
+- name: test if python is installed
+  block:
+    - name: Check if Python 3 is installed
+      ansible.builtin.raw: which python3
+      changed_when: false
+      failed_when: false
+      register: python_check
+      
+    - name: install python 3 if not installed
+      ansible.builtin.raw: apk update && apk add python3 py3-pip
+      when: python_check.rc != 0
+      
+  rescue:
+    - name: PRQF-1 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        apply:
+          delegate_to: localhost
+          become: false
+          
+- name: 0 Attempt Connection and Configuration
+  block:
+    - name: PRQ-1 Check host availability explicitly
+      ansible.builtin.wait_for_connection:
+        timeout: 20
+      # CRITICAL: Forces connection errors to act like standard failures
+      ignore_unreachable: true
+
+    - name: PRQ-2 Gather facts once connection is confirmed
+      ansible.builtin.setup:
+      
+    - name: PRQ-3 Run primary task
+      ansible.builtin.command: echo "Connected successfully!"
+      
+  rescue:
+    - name: PRQF-1 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        apply:
+          delegate_to: localhost
+          become: false
+

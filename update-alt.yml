@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  become_method: "{{ lookup('env', 'DISTRO_BECOME_METHOD') }}"
+  gather_facts: false
+  name: update-alt.yml
+  vars:
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+  tasks:
+      - name: 1 Upgrade the OS (apt-get dist-upgrade)
+        block:
+          - name: 1-0 Upgrade the OS (apt-get dist-upgrade)
+            ansible.builtin.apt:
+              update_cache: yes
+              upgrade: dist
+            async: 300
+            poll: 30
+            timeout: 300
+        when: current_distro_name == "Ubuntu" or current_distro_name == "Debian"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+      
+      - name: 1 Update all packages to their latest version
+        block:
+          - name: 1-0 Update all packages to their latest version
+            community.general.apk:
+              update_cache: true
+              upgrade: true
+            register: apk_upgrade
+        when: current_distro_name == "Alpine"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+
+      - name: Unsupported Distro
+        ansible.builtin.fail:
+          msg: "Unsupported Distro"
+        when: current_distro_name != "Ubuntu" and current_distro_name != "Debian" and current_distro_name != "Alpine"

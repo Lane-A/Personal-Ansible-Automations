@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: false
+  tasks:
+    - name: Restart Image
+      ansible.builtin.shell: cd AlcornStateAnalytics && docker compose down && sleep 5 && docker compose up -d && sleep 5
+      args:
+        executable: /bin/bash

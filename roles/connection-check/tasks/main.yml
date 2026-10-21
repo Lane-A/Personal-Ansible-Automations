@@ -1,0 +1,25 @@
+---
+- name: Connection Checks - Unknown
+  ansible.builtin.fail:
+    msg: "No distro selected as a ENV VAR"
+  when: distro_name == "Unknown"
+  
+- name: Connection Checks - Debain
+  ansible.builtin.include_role:
+    name: connection-check-debian
+  when: distro_name == "Ubuntu" or distro_name == "Debian"
+
+- name: Connection Checks - RHEL
+  ansible.builtin.include_role:
+    name: connection-check-rhel
+  when: distro_name == "RHEL"
+  
+- name: Connection Checks - Alpine
+  ansible.builtin.include_role:
+    name: connection-check-alpine
+  when: distro_name == "Alpine"
+
+- name: Unsupported Distro
+  ansible.builtin.fail:
+    msg: "Unsupported Distro"
+  when: distro_name != "Unknown" and distro_name != "Ubuntu" and distro_name != "Debian" and distro_name != "Alpine" and distro_name != "RHEL"

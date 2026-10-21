@@ -1,0 +1,25 @@
+---
+- name: 1 Schedule a reboot for 5 minutes from now
+  block:
+    - name: 1-0 Schedule a reboot for 2 minutes from now
+      ansible.builtin.shell: "shutdown -r +2"
+      async: 30
+      poll: 5
+      ignore_errors: true
+      timeout: 300
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+    
+- name: 2 Wait for the system to come back online
+  block:
+    - name: 2-0 Wait for the system to come back online
+      ansible.builtin.wait_for_connection:
+        delay: 120
+        timeout: 240
+      timeout: 240
+  rescue:
+    - name: 2F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

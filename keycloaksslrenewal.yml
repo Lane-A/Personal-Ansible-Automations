@@ -1,0 +1,12 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Alert IT Team
+      ansible.builtin.uri: 
+        url: 'https://hooks.slack.com/services/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'
+        method: POST
+        body_format: json
+        body: {"text": "<!channel> Ubuntu Issues: \n Date: {{ ansible_date_time.date }} \n Description: please login to the keycloak EC2 instance and paste the following command and reboot: \n ``` cd app && docker compose down && sleep 25 && docker run -it --rm --name certbot -p 80:80 -v '/home/ubuntu/app:/etc/letsencrypt' -v '/home/ubuntu/app:/var/lib/letsencrypt' certbot/certbot certonly --email lane.arnold@betaflixinc.com --agree-tos --no-eff-email --force-renewal --standalone -d keycloak.betaflixinc.com -d admin.keycloak.betaflixinc.com && sleep 25 && sudo chown -R ubuntu:ubuntu ./live/keycloak.betaflixinc.com/privkey.pem && sudo chown -R ubuntu:ubuntu ./live/keycloak.betaflixinc.com/fullchain.pem ``` ", "username": "AutoUbuntuIssues", "icon_emoji" : ":zap:"}
+        headers:
+          Content-Type: application/json

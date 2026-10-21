@@ -1,0 +1,126 @@
+---
+- name: 0-0 Upgrade the OS
+  block:
+    - name: Apply latest package updates
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      async: 300
+      poll: 30
+      timeout: 300
+  rescue:
+    - name: 0F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 1 - install core packages
+  block:
+    - name: install plugins core package
+      ansible.builtin.dnf:
+        name: 
+          - dnf-plugins-core
+          - kernel-modules-extra
+        state: latest
+        update_cache: true
+      async: 300
+      poll: 5
+      timeout: 300
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: reboot 8
+  block:
+    - name: 8-0 Schedule a reboot for 2 minutes from now
+      ansible.builtin.include_role:
+        name: reboot-rhel
+  rescue:
+    - name: 8F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 2 - Enable Docker repo
+  block:
+    - name: 2-0 Task 2
+      ansible.builtin.shell: dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 2F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+- name: Task 2 - Enable Docker repo
+  block:
+    - name: 2-0 Task 2
+      ansible.builtin.shell: modprobe xt_addrtype
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 2F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+- name: Task 3
+  block:
+    - name: Install docker packages
+      ansible.builtin.dnf:
+        name: 
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+      async: 300
+      poll: 15
+      timeout: 300
+  rescue:
+    - name: 3F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 4
+  block:
+    - name: 4-0 Task 4
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+  rescue:
+    - name: 4F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+            
+- name: Task 6
+  block:
+    - name: 6-0 Task 6
+      ansible.builtin.shell: docker run hello-world
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 6F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 7
+  block:
+    - name: 7-0 Task 7
+      ansible.builtin.shell: usermod -aG docker "{{ ansible_user }}"
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 7F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+  
+- name: reboot 8
+  block:
+    - name: 8-0 Schedule a reboot for 2 minutes from now
+      ansible.builtin.include_role:
+        name: reboot-rhel
+  rescue:
+    - name: 8F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

@@ -1,0 +1,25 @@
+---
+- name: Attempt to Recover
+  delegate_to: localhost
+  become: false
+  community.general.slack:
+    token: "{{ slack_token }}"
+    channel: "{{ slack_channel }}"
+    msg: |
+      <!channel>
+      🚨 *{{ service_name }} Down* 🚨
+      Attempting to Recover
+  when: error_platform == "Slack"
+
+- name: Attempt to Recover
+  delegate_to: localhost
+  become: false
+  community.general.telegram:
+    token: "{{ telegram_token }}"
+    api_args:
+      chat_id: "{{ telegram_channel }}"
+      parse_mode: "markdown"
+      text: |
+        🚨 *{{ service_name }} Down* 🚨
+        Attempting to Recover
+  when: error_platform == "Telegram"

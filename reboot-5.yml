@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  gather_facts: false
+  name: reboot-5.yml
+  vars:
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+  
+  pre_tasks:
+      - name: Connection Checks
+        ansible.builtin.include_role:
+          name: connection-check
+        vars:
+          distro_name: "{{ current_distro_name }}"
+          
+  tasks:
+      - name: 1 Schedule a reboot for 5 minutes from now
+        block:
+          - name: 1-0 Schedule a reboot for 5 minutes from now
+            ansible.builtin.shell: "shutdown -r +5"
+            async: 30
+            poll: 5
+            ignore_errors: true
+            timeout: 300
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+          
+      - name: 2 Wait for the system to come back online
+        block:
+          - name: 2-0 Wait for the system to come back online
+            ansible.builtin.wait_for_connection:
+              delay: 300
+              timeout: 600
+            timeout: 900
+        rescue:
+          - name: 2F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert

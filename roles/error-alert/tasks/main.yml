@@ -1,0 +1,30 @@
+---
+- name: Send Error Message (Slack)
+  community.general.slack:
+    token: "{{ slack_token }}"
+    channel: "{{ slack_channel }}"
+    msg: |
+        <!channel>
+        🚨 *Playbook Failed!* 🚨
+        *Host:* {{ inventory_hostname }}
+        *Failed Task:* {{ ansible_failed_task.name }}
+        *Failed Playbook:* {{ ansible_play_name }}
+        *Failure Message:* ```{{ ansible_failed_result }}```
+  when: error_platform == "Slack"
+
+- name: Send Error Message (Telegram)
+  community.general.telegram:
+    token: "{{ telegram_token }}"
+    api_args:
+      chat_id: "{{ telegram_channel }}"
+      parse_mode: "markdown"
+      text: |
+          🚨 *Playbook Failed!* 🚨
+          *Host:* {{ inventory_hostname }}
+          *Failed Task:* {{ ansible_failed_task.name }}
+          *Failed Playbook:* {{ ansible_play_name }}
+  when: error_platform == "Telegram"
+        
+- name: End playbook execution after alert
+  ansible.builtin.fail:
+    msg: "Playbook execution stopped due to a failure."

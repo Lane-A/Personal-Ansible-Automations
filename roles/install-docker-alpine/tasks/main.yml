@@ -1,0 +1,69 @@
+---
+- name: Task 0 Setup Community Repos
+  block:
+    - name: 0-0 Task 0
+      ansible.builtin.shell: setup-apkrepos -c -1
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 0F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 1 Upgrade the OS (apt-get dist-upgrade)
+  block:
+    - name: 1-0 Update all packages to their latest version
+      community.general.apk:
+        update_cache: true
+        upgrade: true
+      register: apk_upgrade
+  rescue:
+    - name: 0F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 2
+  block:
+    - name: Task 2 Install docker
+      community.general.apk:
+        name: docker,docker-cli-compose
+        update_cache: true
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 3 start docker service
+  block:
+    - name: 0-0 Task 0
+      ansible.builtin.shell: |
+        rc-update add docker default
+        service docker start
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 4 add user to docker group
+  block:
+    - name: 0-0 Task 0
+      ansible.builtin.shell: addgroup "{{ ansible_user }}" docker
+      args:
+        executable: "{{ distro_command_method }}"
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: 1 Schedule a reboot for 5 minutes from now
+  block:
+    - name: 1-0 Schedule a reboot for 2 minutes from now
+      ansible.builtin.shell: "reboot"
+      ignore_errors: true
+      timeout: 300
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

@@ -1,0 +1,20 @@
+---
+- hosts: all
+  become: false
+  tasks:
+    - name: Update Image and Deploy
+      ansible.builtin.shell: aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 387962842595.dkr.ecr.us-east-2.amazonaws.com/betaflix/company-website && cd production && docker compose down && docker compose pull && docker compose up -d
+      args:
+        executable: /bin/bash
+
+    - name: message devs
+      ansible.builtin.uri: 
+        url: 'https://hooks.slack.com/services/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'
+        method: POST
+        body_format: json
+        body: {"text": "<!channel> Main-Company-Website Deployed to Production: https://betaflixinc.com/", "username": "Autodeployments", "icon_emoji" : ":zap:"}
+        headers:
+          Content-Type: application/json
+
+    
+        

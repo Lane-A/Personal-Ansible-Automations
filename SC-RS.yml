@@ -1,0 +1,40 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  become_method: "{{ lookup('env', 'DISTRO_BECOME_METHOD') }}"
+  name: "{{ lookup('env', 'PLAYBOOK_NAME') }}"
+  vars: 
+    playbook_service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
+    recovery_command: "{{ lookup('env', 'RECOVERY_COMMAND') }}"
+    recovery_command_dir: "{{ lookup('env', 'RECOVERY_COMMAND_DIR') }}"
+    recovery_command_method: "{{ lookup('env', 'DISTRO_COMMAND_EXECUTABLE') }}"
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+    
+  pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
+          
+  tasks:
+      - name: Recovery Notidication Loop
+        ansible.builtin.include_role:
+          name: recovery-notification-loop
+        vars: 
+          playbook_role_service_name: "{{ playbook_service_name }}"
+            
+      - name: 1 Task 1
+        block:
+          - name: 1-0 Task 1
+            ansible.builtin.shell: "{{ recovery_command }}"
+            args:
+              executable: "{{ recovery_command_method }}"
+              chdir: "{{ recovery_command_dir }}"
+            when: RECOVERED is regex('status:0')
+            timeout: 300
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert

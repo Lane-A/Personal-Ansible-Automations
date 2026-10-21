@@ -1,0 +1,6 @@
+---
+slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
+slack_channel: "{{ lookup('env', 'SLACK_CHANNEL') }}"
+error_platform: "{{ lookup('env', 'ERROR_PLATFORM') }}"
+telegram_token: "{{ lookup('env', 'TELEGRAM_TOKEN') }}"
+telegram_channel: "{{ lookup('env', 'TELEGRAM_CHANNEL') }}"

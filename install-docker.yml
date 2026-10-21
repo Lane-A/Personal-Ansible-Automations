@@ -1,0 +1,61 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  become_method: "{{ lookup('env', 'DISTRO_BECOME_METHOD') }}"
+  name: install-docker.yml
+  vars: 
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+      
+  pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
+          
+  tasks:
+      - name: 1 Task 1
+        block:
+          - name: 1-0 Task 1
+            ansible.builtin.include_role:
+              name: install-docker-debian
+            when: current_distro_name == "Debian"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+      - name: 2 Task 2
+        block:
+          - name: 2-0 Task 2
+            ansible.builtin.include_role:
+              name: install-docker-ubuntu
+            when: current_distro_name == "Ubuntu"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+      - name: 3 Task 3
+        block:
+          - name: 2-0 Task 3
+            ansible.builtin.include_role:
+              name: install-docker-alpine
+            when: current_distro_name == "Alpine"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+      - name: 4 Task 4
+        block:
+          - name: 4-0 Task 4
+            ansible.builtin.include_role:
+              name: install-docker-rhel
+            when: current_distro_name == "RHEL"
+        rescue:
+          - name: 1F-0 Send failure alert
+            ansible.builtin.include_role:
+              name: error-alert
+      - name: Unsupported Distro
+        ansible.builtin.fail:
+          msg: "Unsupported Distro"
+        when: current_distro_name != "Ubuntu" and current_distro_name != "Debian" and current_distro_name != "Alpine" and current_distro_name != "RHEL"

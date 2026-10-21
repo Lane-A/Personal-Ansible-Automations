@@ -1,0 +1,48 @@
+---
+- name: Task 1
+  block:
+    - name: 1-0 Task 1
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 2
+  block:
+    - name: 2-0 Task 2
+  rescue:
+    - name: 1F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 3
+  block:
+    - name: 3-0 Task 3
+  rescue:
+    - name: 3F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+        
+- name: Task 3
+  block:
+    - name: 4-0 Task 4
+  rescue:
+    - name: 4F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 4
+  block:
+    - name: 4-0 Task 4
+  rescue:
+    - name: 4F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
+
+- name: Task 5
+  block:
+    - name: 5-0 Task 5
+  rescue:
+    - name: 5F-0 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert

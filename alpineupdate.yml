@@ -1,0 +1,19 @@
+---
+- hosts: all
+  become: true
+  become_method: doas
+  tasks:
+    - name: Update all installed packages to the latest versions
+      community.general.apk:
+        upgrade: true
+
+    - name: Upgrade / replace / downgrade / uninstall all installed packages to the latest versions available
+      community.general.apk:
+        available: true
+        upgrade: true
+        
+    - name: Reboot System
+      ansible.builtin.shell: reboot
+      args:
+        executable: /bin/ash  
+      timeout: 300

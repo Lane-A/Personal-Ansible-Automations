@@ -1,0 +1,2 @@
+---
+distro_command_method: "{{ lookup('env', 'DISTRO_COMMAND_EXECUTABLE') }}"

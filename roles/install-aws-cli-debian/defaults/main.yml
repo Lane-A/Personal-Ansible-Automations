@@ -1,0 +1,4 @@
+---
+distro_command_method: "{{ lookup('env', 'DISTRO_COMMAND_EXECUTABLE') }}"
+aws_cli_access_key: "{{ lookup('env', 'AWS_CLI_ACCESS_KEY') }}"
+aws_cli_access_secret: "{{ lookup('env', 'AWS_CLI_ACCESS_SECRET') }}"

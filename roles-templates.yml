@@ -1,0 +1,34 @@
+ ---
+#0 Defaults:
+gather_facts: false
+pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+        
+#1 slack-recovery-attempt
+vars: 
+  playbook_service_name: "service name"
+
+- name: Notify Attempt to Recover
+  ansible.builtin.include_role:
+    name: slack-recovery-attempt
+  vars: 
+    service_name: "{{ playbook_service_name }}"
+
+#2 slack error alert (task error)
+- name: 1F-0 Send failure alert
+  ansible.builtin.include_role:
+      name: error-alert
+
+#3 slack-recovery-success
+vars: 
+  playbook_service_name: "service name"
+
+- name: Service Recovered
+  ansible.builtin.include_role:
+    name: slack-recovery-success
+  vars: 
+    service_name: "{{ playbook_service_name }}"
+
+    
