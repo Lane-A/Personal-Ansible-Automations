@@ -17,8 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo with token
+        env:
+          TOKEN: ${{ secrets.PAT }}
         run: |
-          git clone https://${{ secrets.PAT }}@://github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git
+          git clone https://${{ secrets.PAT }}@github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git
           cd target-repo
           # Make your file updates here
           git config user.name "github-actions[bot]"
