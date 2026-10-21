@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Clone repo with token
         run: |
-          git clone https://${{ secrets.PAT }}@github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git
+          git clone https://x-access-token:${{ secrets.PAT }}@github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git
           cd target-repo
           # Make your file updates here
           git config user.name "github-actions[bot]"
