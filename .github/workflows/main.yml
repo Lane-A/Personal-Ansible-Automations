@@ -4,7 +4,7 @@ on:
   schedule:
     # 💡 Tip: You must quote the cron string because * is a special character in YAML
     - cron: '0 6 * * *'
-      timezone: 'America/New_York'
+      timezone: 'America/Chicago'
   workflow_dispatch:
     inputs:
       reason:
