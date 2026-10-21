@@ -16,11 +16,27 @@ jobs:
   mirror-repo:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Target Repo
+        uses: actions/checkout@v4
+        with:
+          path: 'target-dir'
+          
       - name: Clone repo with token
         run: |
-          git clone https://x-access-token:${{ secrets.PAT }}@github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git target-repo 
-          cd target-repo
+          ls -a
+          git clone https://x-access-token:${{ secrets.PAT }}@github.com/BetaFlix-Global/Operations-Ansible-Playbooks.git source-dir 
+          ls -a
+          cd source-dir
+          ls -a
           # Make your file updates here
+          rm -rf .git
+          ls -a
+          cd ..
+          ls -a
+          cp -a ./source-dir. ./target-dir
+          ls -a
+          cd target-dir
+          ls -a
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
