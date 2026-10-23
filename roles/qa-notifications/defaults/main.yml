@@ -1,0 +1,7 @@
+---
+slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
+slack_channel_devs: "{{ lookup('env', 'SLACK_CHANNEL_DEVS') }}"
+slack_channel_qa: "{{ lookup('env', 'SLACK_CHANNEL_QA') }}"
+service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
+service_url: "{{ lookup('env', 'SERVICE_URL') }}"
+repo_name: "{{ lookup('env', 'REPO_NAME') }}"

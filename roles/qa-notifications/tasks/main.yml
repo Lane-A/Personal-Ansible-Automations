@@ -1,0 +1,24 @@
+---
+- name: Dev Message
+  delegate_to: localhost
+  become: false
+  community.general.slack:
+    token: "{{ slack_token }}"
+    channel: "{{ slack_channel_devs }}"
+    msg: |
+      <!channel>
+      ✅ *{{ service_name }} Deployed to QA* ✅
+      URL: {{ service_url}}
+
+- name: QA Ticket
+  delegate_to: localhost
+  become: false
+  community.general.slack:
+    token: "{{ slack_token }}"
+    channel: "{{ slack_channel_qa }}"
+    msg: |
+      <!channel>
+      QA Ticket:
+      Repo: {{ repo_name }}
+      Date: {{ ansible_date_time.date }}
+      Deployed QA Website Link: {{ service_url}}

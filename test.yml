@@ -1,8 +1,11 @@
 ---
 - hosts: all
-  become: false
+  become: true
+  become_method: sudo
   gather_facts: false
+  name: base-template.yml
   vars:
+    slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
     current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
   pre_tasks:
     - name: Connection Checks
@@ -11,14 +14,23 @@
       vars:
         distro_name: "{{ current_distro_name }}"
   tasks:
-    - name: 1 Upgrade the OS (apt-get dist-upgrade)
+    - name: 1 Task 1
       block:
-        - name: 1-0 Upgrade the OS (apt-get dist-upgrade)
-          ansible.builtin.command: /bin/false
+        - name: 1-0 Task 1
+          ansible.builtin.include_role:
+            name: staging-notifications
+          timeout: 300
       rescue:
         - name: 1F-0 Send failure alert to Slack
-          ansible.builtin.include_role:
-            name: error-alert
-          vars: 
-            service_name: "{{ playbook_service_name }}"
-            
+          community.general.slack:
+            token: "{{ slack_token }}"
+            channel: "{{ slack_channel }}"
+            msg: |
+              🚨 *Playbook Failed!*
+              *Host:* {{ inventory_hostname }}
+              *Failed Task:* {{ ansible_failed_task.name }}
+              *Failed Playbook:* {{ ansible_play_name }}
+              *Failure Message:* ```{{ ansible_failed_result }}```
+        - name: 1F-1 End playbook execution after alert
+          ansible.builtin.fail:
+            msg: "Playbook execution stopped due to a failure."
