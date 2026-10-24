@@ -1,0 +1,10 @@
+---
+- name: Staging Message
+  delegate_to: localhost
+  become: false
+  community.general.slack:
+    token: "{{ slack_token }}"
+    channel: "{{ slack_message_channel }}"
+    msg: |
+      <!channel>
+      {{ slack_message }}

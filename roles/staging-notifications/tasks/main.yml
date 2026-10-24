@@ -8,4 +8,4 @@
     msg: |
       <!channel>
       ✅ *{{ service_name }} Deployed to Staging* ✅
-      URL: {{ service_url}}
+      URL: {{ service_url_staging }}

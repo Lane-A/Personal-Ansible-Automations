@@ -1,8 +1,21 @@
 ---
 - hosts: all
   become: false
+  become_method: sudo
+  gather_facts: false
+  name: deployistarqa.yml
+  vars:
+    slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+  pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
   tasks:
   #Prune old images and docker compose down the existing services
+  
     - name: Prune old images
       ansible.builtin.shell: docker system prune -af --volumes
       args:
@@ -89,24 +102,23 @@
       ansible.builtin.pause:
         seconds: 1
   #Message Devs
-    - name: message devs
-      ansible.builtin.uri: 
-        url: 'https://hooks.slack.com/services/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'
-        method: POST
-        body_format: json
-        body: {"text": "<!channel> iStar Deployed to QA: https://qa.istar.betaflixinc.com/", "username": "Autodeployments", "icon_emoji" : ":zap:"}
-        headers:
-          Content-Type: application/json
-
-    - name: Pause for 10 seconds to ensure execution order
-      ansible.builtin.pause:
-        seconds: 10
-
-    - name: message qa
-      ansible.builtin.uri: 
-        url: 'https://hooks.slack.com/services/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'
-        method: POST
-        body_format: json
-        body: {"text": "<!channel> QA Ticket:\n Repo: WebDev-iStar_Fullstack \n Date: {{ ansible_date_time.date }} \n Description: Deployed QA Website Link: https://qa.istar.betaflixinc.com/", "username": "AutoQA", "icon_emoji" : ":zap:"}
-        headers:
-          Content-Type: application/json
+    - name: 1 Task 1
+      block:
+        - name: 1-0 Task 1
+          ansible.builtin.include_role:
+            name: qa-notifications
+          timeout: 300
+      rescue:
+        - name: 1F-0 Send failure alert to Slack
+          community.general.slack:
+            token: "{{ slack_token }}"
+            channel: "{{ slack_channel }}"
+            msg: |
+              🚨 *Playbook Failed!*
+              *Host:* {{ inventory_hostname }}
+              *Failed Task:* {{ ansible_failed_task.name }}
+              *Failed Playbook:* {{ ansible_play_name }}
+              *Failure Message:* ```{{ ansible_failed_result }}```
+        - name: 1F-1 End playbook execution after alert
+          ansible.builtin.fail:
+            msg: "Playbook execution stopped due to a failure."

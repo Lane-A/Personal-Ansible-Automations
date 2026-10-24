@@ -1,12 +1,36 @@
 ---
 - hosts: all
   become: true
+  become_method: sudo
+  gather_facts: false
+  name: keycloaksslrenewal.yml
+  vars:
+    slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+  pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
   tasks:
-    - name: Alert IT Team
-      ansible.builtin.uri: 
-        url: 'https://hooks.slack.com/services/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'
-        method: POST
-        body_format: json
-        body: {"text": "<!channel> Ubuntu Issues: \n Date: {{ ansible_date_time.date }} \n Description: please login to the keycloak EC2 instance and paste the following command and reboot: \n ``` cd app && docker compose down && sleep 25 && docker run -it --rm --name certbot -p 80:80 -v '/home/ubuntu/app:/etc/letsencrypt' -v '/home/ubuntu/app:/var/lib/letsencrypt' certbot/certbot certonly --email lane.arnold@betaflixinc.com --agree-tos --no-eff-email --force-renewal --standalone -d keycloak.betaflixinc.com -d admin.keycloak.betaflixinc.com && sleep 25 && sudo chown -R ubuntu:ubuntu ./live/keycloak.betaflixinc.com/privkey.pem && sudo chown -R ubuntu:ubuntu ./live/keycloak.betaflixinc.com/fullchain.pem ``` ", "username": "AutoUbuntuIssues", "icon_emoji" : ":zap:"}
-        headers:
-          Content-Type: application/json
+    - name: 1 Task 1
+      block:
+        - name: 1-0 Task 1
+          ansible.builtin.include_role:
+            name: slack-message
+          timeout: 300
+      rescue:
+        - name: 1F-0 Send failure alert to Slack
+          community.general.slack:
+            token: "{{ slack_token }}"
+            channel: "{{ slack_channel }}"
+            msg: |
+              🚨 *Playbook Failed!*
+              *Host:* {{ inventory_hostname }}
+              *Failed Task:* {{ ansible_failed_task.name }}
+              *Failed Playbook:* {{ ansible_play_name }}
+              *Failure Message:* ```{{ ansible_failed_result }}```
+        - name: 1F-1 End playbook execution after alert
+          ansible.builtin.fail:
+            msg: "Playbook execution stopped due to a failure."

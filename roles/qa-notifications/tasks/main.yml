@@ -8,7 +8,7 @@
     msg: |
       <!channel>
       ✅ *{{ service_name }} Deployed to QA* ✅
-      URL: {{ service_url}}
+      URL: {{ service_url_qa }}
 
 - name: QA Ticket
   delegate_to: localhost
@@ -21,4 +21,4 @@
       QA Ticket:
       Repo: {{ repo_name }}
       Date: {{ ansible_date_time.date }}
-      Deployed QA Website Link: {{ service_url}}
+      Deployed QA Website Link: {{ service_url_qa }}

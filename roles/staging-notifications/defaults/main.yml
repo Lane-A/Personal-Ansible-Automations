@@ -1,4 +1,4 @@
 slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
 slack_channel_staging: "{{ lookup('env', 'SLACK_CHANNEL_STAGING') }}"
 service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
-service_url: "{{ lookup('env', 'SERVICE_URL') }}"
+service_url_staging: "{{ lookup('env', 'SERVICE_URL_STAGING') }}"
