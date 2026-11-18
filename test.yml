@@ -5,8 +5,9 @@
   gather_facts: false
   name: base-template.yml
   vars:
-    slack_token: "{{ lookup('env', 'SLACK_TOKEN') }}"
     current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+    current_service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
+    
   pre_tasks:
     - name: Connection Checks
       ansible.builtin.include_role:
@@ -14,23 +15,29 @@
       vars:
         distro_name: "{{ current_distro_name }}"
   tasks:
-    - name: 1 Task 1
+    - name: Task 1 Get Temporary Credentials
+      block:
+        - name: Task 1
+          amazon.aws.sts_assume_role:
+            access_key: AKIA1EXAMPLE1EXAMPLE
+            secret_key: 123456789abcdefghijklmnopqrstuvwxyzABCDE
+            role_arn: "arn:aws:iam::123456789012:role/someRole"
+            role_session_name: "someRoleSession"
+          register: assumed_role
+          delegate_to: localhost
+          become: false
+      rescue:
+        - name: Task 1 Send failure alert
+          ansible.builtin.include_role:
+            name: error-alert
+    - name: 2 Task 2
       block:
         - name: 1-0 Task 1
-          ansible.builtin.include_role:
-            name: staging-notifications
-          timeout: 300
+          ansible.builtin.debug:
+            msg: "Processing item: {{ item }}"
+          # Converts the JSON string directly into a proper Ansible list
+          loop: "{{ lookup('ansible.builtin.env', 'MY_LIST') | from_json }}"
       rescue:
-        - name: 1F-0 Send failure alert to Slack
-          community.general.slack:
-            token: "{{ slack_token }}"
-            channel: "{{ slack_channel }}"
-            msg: |
-              🚨 *Playbook Failed!*
-              *Host:* {{ inventory_hostname }}
-              *Failed Task:* {{ ansible_failed_task.name }}
-              *Failed Playbook:* {{ ansible_play_name }}
-              *Failure Message:* ```{{ ansible_failed_result }}```
-        - name: 1F-1 End playbook execution after alert
-          ansible.builtin.fail:
-            msg: "Playbook execution stopped due to a failure."
+        - name: 1F-0 Send failure alert
+          ansible.builtin.include_role:
+            name: error-alert
