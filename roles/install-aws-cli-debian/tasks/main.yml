@@ -19,6 +19,7 @@
       ansible.builtin.apt:
         name:
           - unzip
+          - gnupg
         state: present
         update_cache: true
       async: 300

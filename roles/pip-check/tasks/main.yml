@@ -1,0 +1,19 @@
+---
+- name: test if pip is installed
+  block:
+    - name: Check if pip is installed via shell
+      shell: which pip
+      register: pip_check
+      changed_when: false
+      ignore_errors: true
+      
+    - name: Install python3-pip
+      ansible.builtin.apt:
+        name: python3-pip
+        state: present
+        update_cache: true
+      when: pip_check.rc != 0
+  rescue:
+    - name: PRQF-1 Send failure alert
+      ansible.builtin.include_role:
+        name: error-alert
