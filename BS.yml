@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  gather_facts: false
+  name: base-template.yml
+  vars:
+    current_distro_name: "{{ lookup('env', 'DISTRO_NAME') }}"
+    current_service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
+    aws_s3_ansible_backup_access_key: "{{ lookup('env', 'AWS_S3_BACKUP_AK') }}"
+    aws_s3_ansible_backup_secret: "{{ lookup('env', 'AWS_S3_BACKUP_S') }}"
+    
+  pre_tasks:
+    - name: Connection Checks
+      ansible.builtin.include_role:
+        name: connection-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
+    - name: Boto3 Checks
+      ansible.builtin.include_role:
+        name: boto3-check
+      vars:
+        distro_name: "{{ current_distro_name }}"
+    - name: Get Temporary Credentials
+      block:
+        - name: Get Temporary Credentials
+          community.aws.sts_session_token:
+            access_key: "{{ aws_s3_ansible_backup_access_key }}"
+            secret_key: "{{ aws_s3_ansible_backup_secret }}"
+            duration_seconds: 900
+          register: session_credentials
+          delegate_to: localhost
+          become: false
+      rescue:
+        - name: Task 1 Send failure alert
+          ansible.builtin.include_role:
+            name: error-alert
+  tasks:
