@@ -35,6 +35,8 @@ jobs:
           ls -a
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          DATE=$(date +"%Y-%m-%d") 
+          sed -i "s/_Last updated:.*_/_Last updated: ${DATE}_/" README.md   
           git add .
           git commit -m "Update repository files"
           git push origin main
