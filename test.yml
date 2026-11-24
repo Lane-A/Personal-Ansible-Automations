@@ -50,7 +50,43 @@
             secret_key: "{{ session_credentials.sts_creds.secret_key }}"
             session_token: "{{ session_credentials.sts_creds.session_token }}"
           # Converts the JSON string directly into a proper Ansible list
-          loop: "{{ lookup('ansible.builtin.env', 'SINGLE_FILES').split(',')}}"
+          loop: "{{ lookup('env', 'SINGLE_FILES').split(',')}}"
+          when: lookup('env', 'SINGLE_FILES') | trim | length > 0
+      rescue:
+        - name: 1F-0 Send failure alert
+          ansible.builtin.include_role:
+            name: error-alert
+    - name: 3 Task 2
+      block:
+        - name: 1-0 Task 5
+          community.general.archive:
+            path: "{{ base_directory }}/{{ item }}"
+            dest: "{{ base_directory }}/{{ item }}_backup.tar.gz"
+            format: gz
+          # Converts the JSON string directly into a proper Ansible list
+          loop: "{{ lookup('env', 'DIRS').split(',')}}"
+          when: lookup('env', 'DIRS') | trim | length > 0
+          
+        - name: 1-0 Task 7
+          amazon.aws.s3_object:
+            bucket: "{{ aws_s3_bucket_name }}"
+            object: "{{ current_service_name }}{{ item }}_backup.tar.gz"
+            src: "{{ base_directory }}/{{ item }}_backup.tar.gz"
+            mode: put
+            access_key: "{{ session_credentials.sts_creds.access_key }}"
+            secret_key: "{{ session_credentials.sts_creds.secret_key }}"
+            session_token: "{{ session_credentials.sts_creds.session_token }}"
+          # Converts the JSON string directly into a proper Ansible list
+          loop: "{{ lookup('env', 'DIRS').split(',')}}"
+          when: lookup('env', 'DIRS') | trim | length > 0
+
+        - name: Delete a specific file
+          ansible.builtin.file:
+            path: "{{ base_directory }}/{{ item }}_backup.tar.gz"
+            state: absent
+          loop: "{{ lookup('env', 'DIRS').split(',')}}"
+          when: lookup('env', 'DIRS') | trim | length > 0
+   
       rescue:
         - name: 1F-0 Send failure alert
           ansible.builtin.include_role:
